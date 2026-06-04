@@ -1,16 +1,20 @@
 <?php
 // FILE: google_callback.php
-// Use Lax for OAuth callback - Strict breaks cross-site redirects
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/db.php';
 
+// Auto detect redirect URI based on environment
+$redirect_uri = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'
+    ? 'https://' . $_SERVER['HTTP_HOST'] . '/google_callback.php'
+    : 'http://' . $_SERVER['HTTP_HOST'] . '/google_callback.php';
+
 $client = new Google\Client();
 $client->setClientId('332167711514-33fl96ti4tea9qc249kajf09j87jmld4.apps.googleusercontent.com');
 $client->setClientSecret('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');
-$client->setRedirectUri('http://localhost/project/google_callback.php');
+$client->setRedirectUri($redirect_uri);
 $client->addScope('email');
 $client->addScope('profile');
 
@@ -25,7 +29,6 @@ if (!isset($_GET['code'])) {
 }
 
 try {
-    // Exchange code for token
     $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
 
     if (isset($token['error'])) {
@@ -36,7 +39,6 @@ try {
 
     $client->setAccessToken($token);
 
-    // Get user info
     $google_service = new Google\Service\Oauth2($client);
     $google_user = $google_service->userinfo->get();
 
@@ -44,19 +46,16 @@ try {
     $google_email = $google_user->email;
     $google_name = $google_user->name;
 
-    // Check if user exists
     $stmt = $pdo->prepare('SELECT * FROM users WHERE google_id = ? OR email = ?');
     $stmt->execute([$google_id, $google_email]);
     $user = $stmt->fetch();
 
     if ($user) {
-        // Update google_id if not set
         if (!$user['google_id']) {
             $pdo->prepare('UPDATE users SET google_id = ? WHERE id = ?')
                 ->execute([$google_id, $user['id']]);
         }
 
-        // Log them in
         session_regenerate_id(true);
         $_SESSION['authenticated'] = true;
         $_SESSION['user_id'] = $user['id'];
@@ -65,11 +64,9 @@ try {
         $_SESSION['full_name'] = $user['full_name'];
         $_SESSION['last_active'] = time();
 
-        // Log the action
         $pdo->prepare('INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)')
             ->execute([$user['id'], 'GOOGLE_LOGIN', 'User logged in via Google', $_SERVER['REMOTE_ADDR']]);
 
-        // Redirect based on role
         if ($_SESSION['role'] === 'admin') {
             header('Location: admin/dashboard.php');
         } elseif ($_SESSION['role'] === 'property_manager') {
@@ -80,18 +77,16 @@ try {
         exit;
 
     } else {
-        // New user - create tenant account
         $username = strtolower(str_replace(' ', '', $google_name)) . rand(100, 999);
         $hashed = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
 
         $stmt = $pdo->prepare(
-            'INSERT INTO users (username, email, password, role, full_name, google_id) 
+            'INSERT INTO users (username, email, password, role, full_name, google_id)
              VALUES (?, ?, ?, "tenant", ?, ?)'
         );
         $stmt->execute([$username, $google_email, $hashed, $google_name, $google_id]);
         $newId = $pdo->lastInsertId();
 
-        // Log them in
         session_regenerate_id(true);
         $_SESSION['authenticated'] = true;
         $_SESSION['user_id'] = $newId;
@@ -100,7 +95,6 @@ try {
         $_SESSION['full_name'] = $google_name;
         $_SESSION['last_active'] = time();
 
-        // Log registration
         $pdo->prepare('INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)')
             ->execute([$newId, 'GOOGLE_REGISTER', 'New tenant registered via Google', $_SERVER['REMOTE_ADDR']]);
 
