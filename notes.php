@@ -10,24 +10,7 @@ header("X-Frame-Options: DENY");
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <title>Technical Notes — IS351 Property Management</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f0f4f8;
-            min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: #fff; border-radius: 10px; padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.12); max-width: 700px; margin: 40px auto; }
-        h1 { color: #1F4E79; font-size: 24px; margin-bottom: 8px; }
-        .subtitle { color: #777; font-size: 14px; margin-bottom: 30px; }
-        h2 { color: #2E75B6; font-size: 18px; margin-bottom: 8px; margin-top: 24px; }
-        p { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 12px; }
-        .note { background: #fff3e0; border-left: 4px solid #FF9800;
-            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; color: #555; }
-        .success { background: #e8f5e9; border-left: 4px solid #4CAF50;
-            padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; color: #555; }
-        .back { display: inline-block; margin-top: 24px; padding: 10px 20px;
-            background: #2E75B6; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; }
-        .back:hover { background: #1F4E79; }
-        hr { border: none; border-top: 1px solid #e0e0e0; margin: 24px 0; }
-    </style>
+    
 </head>
 <body>
     <div class='card'>
