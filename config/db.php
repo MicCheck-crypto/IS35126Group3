@@ -1,13 +1,13 @@
 <?php
-// FILE: config/db.php - LOCAL VERSION
-$host = 'localhost';
-$name = 'property_mgmt';
-$user = 'root';
-$pass = '';
+$host = getenv('DB_HOST') ?: 'localhost';
+$port = getenv('DB_PORT') ?: '3306';
+$name = getenv('DB_NAME') ?: 'property_mgmt';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: '';
 
 try {
     $pdo = new PDO(
-        'mysql:host=' . $host . ';dbname=' . $name . ';charset=utf8mb4',
+        'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $name . ';charset=utf8mb4',
         $user,
         $pass,
         [
