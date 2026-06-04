@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class='card'>
         <h2>🏠 Property Management</h2>
-        <p class='subtitle'>IS351 Group 3 — Secure Login</p>
+        
 
         <?php if ($error): ?>
             <div class='error'><?= htmlspecialchars($error) ?></div>
