@@ -2,9 +2,9 @@
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net 'unsafe-inline'; frame-src https://www.google.com https://recaptcha.google.com https://www.recaptcha.net;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'");
 header("X-Content-Type-Options: nosniff");
-header("X-Frame-Options: SAMEORIGIN");
+header("X-Frame-Options: DENY");
 
 if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
     if ($_SESSION['role'] === 'admin') header('Location: admin/dashboard.php');
@@ -26,53 +26,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $error = 'Invalid request. Please try again.';
     } else {
-        // reCAPTCHA verification
-        $recaptcha_secret = '6LehrAgtAAAAACP17sCpwBGencE3RUGa1Fw5veWh';
-        $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-        $verify = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response);
-        $captcha_result = json_decode($verify);
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
 
-        if (!$captcha_result->success) {
-            $error = 'Please complete the CAPTCHA verification.';
+        if ($username === '' || $password === '') {
+            $error = 'Please enter both username and password.';
         } else {
-            $username = trim($_POST['username'] ?? '');
-            $password = $_POST['password'] ?? '';
+            $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE username = ? AND is_active = 1');
+            $stmt->execute([$username]);
+            $user = $stmt->fetch();
 
-            if ($username === '' || $password === '') {
-                $error = 'Please enter both username and password.';
+            if ($user && password_verify($password, $user['password'])) {
+                $pdo->prepare('DELETE FROM otp_tokens WHERE user_id = ?')->execute([$user['id']]);
+
+                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $otpHash = hash('sha256', $otp);
+                date_default_timezone_set('Pacific/Fiji');
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+                $stmt = $pdo->prepare('INSERT INTO otp_tokens (user_id, otp_hash, expires_at) VALUES (?, ?, ?)');
+                $stmt->execute([$user['id'], $otpHash, $expiresAt]);
+
+                $_SESSION['2fa_user_id'] = $user['id'];
+                $_SESSION['2fa_username'] = $user['username'];
+                $_SESSION['2fa_email'] = $user['email'];
+                $_SESSION['2fa_role'] = $user['role'];
+                $_SESSION['2fa_fullname'] = $user['full_name'];
+                $_SESSION['2fa_otp'] = $otp;
+
+                // Try to send email
+                sendOtpEmail($user['email'], $user['full_name'], $otp);
+
+                header('Location: verify_otp.php');
+                exit;
             } else {
-                $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE username = ? AND is_active = 1');
-                $stmt->execute([$username]);
-                $user = $stmt->fetch();
-
-                if ($user && password_verify($password, $user['password'])) {
-                    $pdo->prepare('DELETE FROM otp_tokens WHERE user_id = ?')->execute([$user['id']]);
-
-                    $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                    $otpHash = hash('sha256', $otp);
-                    date_default_timezone_set('Pacific/Fiji');
-                    $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-
-                    $stmt = $pdo->prepare('INSERT INTO otp_tokens (user_id, otp_hash, expires_at) VALUES (?, ?, ?)');
-                    $stmt->execute([$user['id'], $otpHash, $expiresAt]);
-
-                    // Store in session
-                    $_SESSION['2fa_user_id'] = $user['id'];
-                    $_SESSION['2fa_username'] = $user['username'];
-                    $_SESSION['2fa_email'] = $user['email'];
-                    $_SESSION['2fa_role'] = $user['role'];
-                    $_SESSION['2fa_fullname'] = $user['full_name'];
-                    $_SESSION['2fa_otp'] = $otp;
-
-                    // Try to send email
-                    sendOtpEmail($user['email'], $user['full_name'], $otp);
-
-                    header('Location: verify_otp.php');
-                    exit;
-                } else {
-                    $error = 'Invalid username or password.';
-                    usleep(500000);
-                }
+                $error = 'Invalid username or password.';
+                usleep(500000);
             }
         }
     }
@@ -84,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <title>Login — IS351 Property Management</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f4f8; display: flex;
             justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -132,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type='text' name='username' autocomplete='username' required>
             <label>Password</label>
             <input type='password' name='password' autocomplete='current-password' required>
-            <div class="g-recaptcha" data-sitekey="6LehrAgtAAAAAPAVRR9UJYRFeKXDvEXuY_C3xKd9" style="margin-bottom:14px;"></div>
             <button type='submit'>Login</button>
         </form>
 
