@@ -10,75 +10,108 @@ header("X-Frame-Options: DENY");
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <title>Technical Notes — IS351 Property Management</title>
-    
+  
 </head>
 <body>
     <div class='card'>
-        <h1>📋 Technical Notes</h1>
-        <p class='subtitle'>IS351 Group 3 — Online Property Management System</p>
+        <h1>Below is the reasons</h1>
+        <p class='subtitle'>IS351 Group 3 (Online Property Management System)</p>
 
         <hr>
 
-        <h2>⚠️ Why CAPTCHA is Not Showing on Live Site</h2>
-        <div class='note'>
-            <strong>Reason:</strong> Google reCAPTCHA v2 requires external scripts from
-            <code>google.com</code> and <code>gstatic.com</code>. Railway's free tier
-            Content Security Policy environment restricts loading of certain external
-            scripts, causing the CAPTCHA widget to be blocked.
-        </div>
+        <h2>Why CAPTCHA is Not Showing on the Live Website</h2>
+
         <p>
-            The CAPTCHA is fully implemented in the code using Google reCAPTCHA v2
-            with server-side verification. It works correctly on the local development
-            environment (localhost) as demonstrated in the submission screenshots.
+            When we built this system, we added Google reCAPTCHA v2 — the "I'm not a robot" 
+            checkbox — to both the login and registration pages. The purpose of CAPTCHA is to 
+            stop automated bots from trying to guess passwords or spam the registration form.
         </p>
-        <div class='success'>
-            <strong>✅ CAPTCHA works on:</strong> localhost (http://localhost/project/login.php)
-            <br>
-            <strong>❌ CAPTCHA blocked on:</strong> Railway free tier due to CSP restrictions
-        </div>
 
-        <hr>
-
-        <h2>⚠️ Why Email OTP (2FA) is Not Active on Live Site</h2>
-        <div class='note'>
-            <strong>Reason:</strong> Railway's free tier blocks outgoing SMTP connections
-            on ports 587 and 465. This is a deliberate security restriction by Railway
-            to prevent spam abuse on their platform. PHPMailer requires SMTP access
-            to send emails via Gmail.
-        </div>
         <p>
-            The complete 2FA Email OTP system is implemented in the codebase including:
-            random OTP generation using <code>random_int()</code>, SHA-256 hashing before
-            database storage, 10-minute expiry, single-use deletion, and 5-attempt lockout.
-            It works correctly on localhost as demonstrated in the submission screenshots.
+            On our local computer (localhost), the CAPTCHA works perfectly fine. 
+            You can see it ticking and everything works as expected.
         </p>
+
+        <div class='note'>
+            <strong>So why doesn't it show on the live website?</strong><br><br>
+            When we deployed our website to Railway (our free cloud hosting), we encounter with an error that says "failed to send varifying code". Then we asked AI 
+            for help, and we discovered that Railway has very strict security settings that block certain external content 
+            from loading. Google's reCAPTCHA needs to load scripts and frames from 
+            Google's own servers (google.com and gstatic.com). Railway's environment 
+            was blocking these external resources from loading, which is why we see 
+            a blank space or blocked content where the CAPTCHA should be.<br><br>
+            We tried several fixes including updating the Content Security Policy headers 
+            to allow Google's scripts, but Railway's environment kept blocking them. according to AI and it says
+            "This is a known limitation of Railway's free tier hosting". Thefore, in our understanding to 
+            solve this we have to upgrade from free.
+        </div>
+
         <div class='success'>
-            <strong>✅ Email OTP works on:</strong> localhost with Gmail SMTP + App Password
-            <br>
-            <strong>❌ Email OTP blocked on:</strong> Railway free tier — SMTP ports 587/465 blocked
+            <strong>The CAPTCHA works on Local Host ?</strong><br><br>
+            Yes, the CAPTCAH  was working on our local host, we confirmed it works when we started testing locally.
         </div>
 
         <hr>
 
-        <h2>✅ What Works on Live Site</h2>
-        <div class='success'>
-            <strong>All of the following work on the live deployment:</strong>
-            <ul style='margin-top: 8px; padding-left: 20px;'>
-                <li>Username and password login with bcrypt verification</li>
-                <li>Google OAuth login (Continue with Google)</li>
-                <li>Role-Based Access Control (Admin, Manager, Tenant)</li>
-                <li>Tenant self-registration</li>
-                <li>Maintenance request submission</li>
-                <li>Property listings and management</li>
-                <li>Audit logging</li>
-                <li>Session management and timeout</li>
-                <li>CSRF protection on all forms</li>
-                <li>SQL Injection prevention</li>
-                <li>XSS prevention</li>
-                <li>HTTPS with SSL certificate</li>
-                <li>Security headers</li>
-            </ul>
+        <h2>Why the Email Verification Code (OTP) is Not Working on the Live Website</h2>
+
+        <p>
+            We know that to fully we shold bulid our system with a complete Two-Factor Authentication (2FA) system.
+            That after entering your username and password, the system was supposed to send 
+            a 6-digit one-time code to your email address. You would then need to enter 
+            that code to complete the login. This adds an extra layer of security,
+            even if someone steals your password, they still cannot log in without 
+            access to your email.
+        </p>
+
+        <p>
+            On our local computer, this works perfectly. When you log in on localhost, 
+            you receive an email with the 6-digit code within seconds. 
+            The screenshots in our submission show this working correctly.
+        </p>
+
+        <div class='note'>
+            <strong>So why doesn't it work on the live website?</strong><br><br>
+            Well, again we asked AI for helps, and it's mentioned that 
+            "Railway's free hosting platform completely blocks all outgoing SMTP connections". 
+            This means our server is literally not allowed to send any emails at all. 
+            <br><br>
+            We tried hint from AI like using Gmail SMTP on port 587, then port 465, but both were blocked, 
+            which we didn't have available for this project.<br><br>
+            We don't have any ideas why this is happened and how it will be solved.
+            so we removed it.
         </div>
+
+
+        <hr>
+
+        <h2>✅ Everything Else That Works on the Live Website</h2>
+
+        <p>Despite the two limitations above, everything else in our system works 
+        correctly on the live website:</p>
+
+        <ul>
+            <li><strong>Login with username and password</strong> — works with bcrypt password hashing</li>
+            <li><strong>Login with Google account</strong> — Google OAuth works on the live site</li>
+            <li><strong>Tenant registration</strong> — new tenants can register themselves</li>
+            <li><strong>Admin dashboard</strong> — admin can see and manage all users, properties and requests</li>
+            <li><strong>Manager dashboard</strong> — manager can update maintenance request statuses</li>
+            <li><strong>Tenant dashboard</strong> — tenants can submit and view their maintenance requests</li>
+            <li><strong>Role-Based Access Control</strong> — each role only sees what they are allowed to see</li>
+            <li><strong>CSRF protection</strong> — all forms are protected against Cross-Site Request Forgery</li>
+            <li><strong>SQL Injection prevention</strong> — all database queries use prepared statements</li>
+            <li><strong>XSS prevention</strong> — all output is sanitized before being shown on screen</li>
+            <li><strong>HTTPS with SSL certificate</strong> — all data is encrypted in transit</li>
+            <li><strong>Session management</strong> — sessions expire after 30 minutes of inactivity</li>
+            <li><strong>Audit logging</strong> — all important actions are recorded in the database</li>
+            <li><strong>Security headers</strong> — X-Frame-Options, X-Content-Type-Options and more</li>
+        </ul>
+
+        <hr>
+
+        <p style='color:#999;font-size:13px;text-align:center;'>
+            IS351 Data & Information Security — Semester 1, 2026 — Group 3
+        </p>
 
         <a href='login.php' class='back'>← Back to Login</a>
     </div>
