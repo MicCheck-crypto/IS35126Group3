@@ -2,9 +2,9 @@
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'unsafe-inline'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com https://www.recaptcha.net 'unsafe-inline'; frame-src https://www.google.com https://recaptcha.google.com https://www.recaptcha.net;");
 header("X-Content-Type-Options: nosniff");
-header("X-Frame-Options: DENY");
+header("X-Frame-Options: SAMEORIGIN");
 
 if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
     if ($_SESSION['role'] === 'admin') header('Location: admin/dashboard.php');
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['2fa_fullname'] = $user['full_name'];
                     $_SESSION['2fa_otp'] = $otp;
 
-                    // Try to send email but don't block if it fails
+                    // Try to send email
                     sendOtpEmail($user['email'], $user['full_name'], $otp);
 
                     header('Location: verify_otp.php');
