@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class='card'>
-        <h2>🏠 Property Management</h2>
+        <h2>Property Management</h2>
         
 
         <?php if ($error): ?>
