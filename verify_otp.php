@@ -1,8 +1,8 @@
 <?php
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict']);
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'unsafe-inline'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
 
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     unset($_SESSION['2fa_user_id'], $_SESSION['2fa_username'],
                           $_SESSION['2fa_email'], $_SESSION['2fa_role'],
-                          $_SESSION['2fa_fullname']);
+                          $_SESSION['2fa_fullname'], $_SESSION['2fa_otp']);
 
                     if ($_SESSION['role'] === 'admin') {
                         header('Location: admin/dashboard.php');
@@ -96,6 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 20px rgba(0,0,0,.12); width: 340px; text-align: center; }
         h2 { color: #1F4E79; margin-bottom: 8px; }
         .sub { text-align: center; color: #555; font-size: 14px; margin-bottom: 24px; }
+        .demo-box { background: #e8f0fe; padding: 12px; border-radius: 6px;
+            margin-bottom: 16px; border: 1px solid #2E75B6; }
+        .demo-box small { color: #555; font-size: 12px; }
+        .demo-box strong { display: block; font-size: 28px; color: #1F4E79;
+            letter-spacing: 8px; margin-top: 4px; }
         input[type=text] { width: 100%; padding: 14px; font-size: 28px;
             letter-spacing: 12px; text-align: center; border: 2px solid #2E75B6;
             border-radius: 8px; box-sizing: border-box; margin-bottom: 16px; }
@@ -113,6 +118,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2>Check Your Email</h2>
         <p class='sub'>We sent a 6-digit code to<br>
         <strong><?= htmlspecialchars($maskedEmail) ?></strong></p>
+
+        <?php if (isset($_SESSION['2fa_otp'])): ?>
+        <div class='demo-box'>
+            <small>⚠️ Demo Mode — Your verification code is:</small>
+            <strong><?= $_SESSION['2fa_otp'] ?></strong>
+        </div>
+        <?php endif; ?>
 
         <?php if ($error): ?>
             <div class='error'><?= $error ?></div>
