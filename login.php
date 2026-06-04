@@ -2,7 +2,6 @@
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
 
@@ -14,7 +13,6 @@ if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
 }
 
 require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/config/mail.php';
 
 $error = '';
 
@@ -37,27 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
-                $pdo->prepare('DELETE FROM otp_tokens WHERE user_id = ?')->execute([$user['id']]);
+                session_regenerate_id(true);
+                $_SESSION['authenticated'] = true;
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['last_active'] = time();
 
-                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                $otpHash = hash('sha256', $otp);
-                date_default_timezone_set('Pacific/Fiji');
-                $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                // Log login
+                require_once __DIR__ . '/config/db.php';
+                $pdo->prepare('INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)')
+                    ->execute([$user['id'], 'LOGIN', 'User logged in', $_SERVER['REMOTE_ADDR']]);
 
-                $stmt = $pdo->prepare('INSERT INTO otp_tokens (user_id, otp_hash, expires_at) VALUES (?, ?, ?)');
-                $stmt->execute([$user['id'], $otpHash, $expiresAt]);
-
-                $_SESSION['2fa_user_id'] = $user['id'];
-                $_SESSION['2fa_username'] = $user['username'];
-                $_SESSION['2fa_email'] = $user['email'];
-                $_SESSION['2fa_role'] = $user['role'];
-                $_SESSION['2fa_fullname'] = $user['full_name'];
-                $_SESSION['2fa_otp'] = $otp;
-
-                // Try to send email
-                sendOtpEmail($user['email'], $user['full_name'], $otp);
-
-                header('Location: verify_otp.php');
+                if ($_SESSION['role'] === 'admin') {
+                    header('Location: admin/dashboard.php');
+                } elseif ($_SESSION['role'] === 'property_manager') {
+                    header('Location: manager/dashboard.php');
+                } else {
+                    header('Location: tenant/dashboard.php');
+                }
                 exit;
             } else {
                 $error = 'Invalid username or password.';
@@ -100,7 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .divider::after { right: 0; }
         .error { background: #fdecea; color: #c0392b; padding: 10px;
             border-radius: 6px; margin-bottom: 14px; font-size: 14px; }
-        .hint { text-align: center; font-size: 12px; color: #999; margin-top: 8px; }
         .register-link { text-align: center; font-size: 13px; color: #777; margin-top: 16px; }
         .register-link a { color: #2E75B6; }
     </style>
@@ -130,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Continue with Google
         </a>
 
-        <p class='hint'>Step 1 of 2 — A verification code will be emailed to you</p>
         <div class='register-link'>
             Don't have an account? <a href='register.php'>Register as Tenant</a>
         </div>
