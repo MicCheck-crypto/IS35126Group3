@@ -23,8 +23,8 @@ function sendOtpEmail(string $toEmail, string $toName, string $otp): bool {
         $mail->SMTPAuth = true;
         $mail->Username = SMTP_USER;
         $mail->Password = SMTP_PASS;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = SMTP_PORT;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = 465;
 
         $mail->setFrom(SMTP_FROM, SMTP_FROM_NAME);
         $mail->addAddress($toEmail, $toName);
