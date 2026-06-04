@@ -130,9 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class='register-link'>
             Don't have an account? <a href='register.php'>Register as Tenant</a>
         </div>
+            <div style='text-align:center;font-size:12px;color:#aaa;margin-top:10px;'>
+            <a href='notes.php' style='color:#aaa;'>The reason why removed CAPTCAH & OTP</a>
+        </div>
     </div>
-    <div style='text-align:center;font-size:12px;color:#aaa;margin-top:10px;'>
-    <a href='notes.php' style='color:#aaa;'>📋 Technical Notes</a>
-</div>
+    
 </body>
 </html>
