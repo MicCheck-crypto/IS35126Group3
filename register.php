@@ -195,9 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php endif; ?>
 
-        <div class='login-link'>
-            Already have an account? <a href='login.php'>Login here</a>
-        </div>
+        
     </div>
 
     <script>
