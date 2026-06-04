@@ -1,5 +1,5 @@
 <?php
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict']);
 session_start();
 
 // Security headers (Week 8 Lab 3)
