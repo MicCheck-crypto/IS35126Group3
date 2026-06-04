@@ -1,15 +1,13 @@
 <?php
-$password = 'Admin@1234';
-$hash = password_hash($password, PASSWORD_BCRYPT);
+require_once __DIR__ . '/config/db.php';
 
-require_once 'config/db.php';
+$adminHash = password_hash('Admin@1234', PASSWORD_BCRYPT);
+$managerHash = password_hash('Manager@1234', PASSWORD_BCRYPT);
 
-$pdo->prepare('UPDATE users SET password = ? WHERE username = "admin"')->execute([$hash]);
-$pdo->prepare('UPDATE users SET password = ? WHERE username = "manager1"')->execute([$hash]);
+$pdo->prepare('UPDATE users SET password = ? WHERE username = "admin"')->execute([$adminHash]);
+$pdo->prepare('UPDATE users SET password = ? WHERE username = "manager1"')->execute([$managerHash]);
 
-echo 'Password updated successfully!<br>';
-echo 'Username: admin | Password: Admin@1234<br>';
-echo 'Username: manager1 | Password: Admin@1234<br>';
-echo '<br><a href="login.php">Go to Login</a>';
-echo '<br><br><strong>DELETE THIS FILE AFTER USE!</strong>';
+echo 'Done!<br>';
+echo 'admin password: Admin@1234<br>';
+echo 'manager1 password: Manager@1234<br>';
 ?>
