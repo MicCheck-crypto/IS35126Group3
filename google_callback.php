@@ -6,10 +6,12 @@ session_start();
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/db.php';
 
-// Auto detect redirect URI based on environment
-$redirect_uri = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'
-    ? 'https://' . $_SERVER['HTTP_HOST'] . '/google_callback.php'
-    : 'http://' . $_SERVER['HTTP_HOST'] . '/google_callback.php';
+// Detect environment
+if (strpos($_SERVER['HTTP_HOST'], 'railway.app') !== false) {
+    $redirect_uri = 'https://is35126group3-production-57da.up.railway.app/google_callback.php';
+} else {
+    $redirect_uri = 'http://localhost/project/google_callback.php';
+}
 
 $client = new Google\Client();
 $client->setClientId('332167711514-33fl96ti4tea9qc249kajf09j87jmld4.apps.googleusercontent.com');
