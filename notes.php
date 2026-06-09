@@ -22,8 +22,8 @@ header("X-Frame-Options: DENY");
         <h2>Why CAPTCHA is Not Showing on the Live Website</h2>
 
         <p>
-            When we built this system, we added Google reCAPTCHA v2 — the "I'm not a robot" 
-            checkbox — to both the login and registration pages. The purpose of CAPTCHA is to 
+            When we built this system, we added Google reCAPTCHA, the "I'm not a robot" 
+            checkbox, to both the login and registration pages. The purpose of CAPTCHA is to 
             stop automated bots from trying to guess passwords or spam the registration form.
         </p>
 
@@ -85,7 +85,7 @@ header("X-Frame-Options: DENY");
 
         <hr>
 
-        <h2>✅ Everything Else That Works on the Live Website</h2>
+        <h2>Everything Else That Works on the Live Website</h2>
 
         <p>Despite the two limitations above, everything else in our system works 
         correctly on the live website:</p>
@@ -109,9 +109,7 @@ header("X-Frame-Options: DENY");
 
         <hr>
 
-        <p style='color:#999;font-size:13px;text-align:center;'>
-            IS351 Data & Information Security — Semester 1, 2026 — Group 3
-        </p>
+       
 
         <a href='login.php' class='back'>← Back to Login</a>
     </div>
