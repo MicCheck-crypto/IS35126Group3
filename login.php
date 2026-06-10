@@ -33,8 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($username === '' || $password === '') {
             $error = 'Please enter both username and password.';
         } else {
-            $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE username = ? AND is_active = 1');
-            $stmt->execute([$username]);
+            // Allow login with username OR email
+            $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE (username = ? OR email = ?) AND is_active = 1');
+            $stmt->execute([$username, $username]);
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
@@ -105,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class='card'>
         <h2>Property Management</h2>
-        
 
         <?php if ($error): ?>
             <div class='error'><?= htmlspecialchars($error) ?></div>
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method='POST'>
             <input type='hidden' name='csrf_token' value='<?= $_SESSION['csrf_token'] ?>'>
-            <label>Username</label>
+            <label>Username or Email</label>
             <input type='text' name='username' autocomplete='username' required>
             <label>Password</label>
             <input type='password' name='password' autocomplete='current-password' required>
@@ -130,11 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class='register-link'>
             Don't have an account? <a href='register.php'>Register as Tenant</a>
         </div>
-            <div style='text-align:center;font-size:12px;color:#aaa;margin-top:10px;'>
-                The reason we removed the CAPTCHA & OPT. please
+        <div style='text-align:center;font-size:12px;color:#aaa;margin-top:10px;'>
+            The reason we removed the CAPTCHA & OTP. please
             <a href='notes.php' style='color:#aaa;'>click here</a>
         </div>
     </div>
-    
 </body>
 </html>
